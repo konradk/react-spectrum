@@ -61,7 +61,7 @@ function ListBox<T>(props: ListBoxProps<T>, ref: ForwardedRef<HTMLDivElement>) {
   if (state) {
     return state.isOpen ? <ListBoxInner state={state} props={props} listBoxRef={ref} /> : null;
   }
-  
+
   return <ListBoxPortal props={props} listBoxRef={ref} />;
 }
 
@@ -199,13 +199,14 @@ interface ListBoxSectionProps<T> extends StyleProps {
 }
 
 function ListBoxSection<T>({section, className, style, ...otherProps}: ListBoxSectionProps<T>) {
+  let {state} = useContext(InternalListBoxContext);
   let {headingProps, groupProps} = useListBoxSection({
     heading: section.rendered,
     'aria-label': section['aria-label']
   });
 
   let children = useCachedChildren({
-    items: section.childNodes,
+    items: state.collection.getChildren(section.key),
     children: item => {
       if (item.type !== 'item') {
         throw new Error('Only items are allowed within a section');
@@ -216,7 +217,7 @@ function ListBoxSection<T>({section, className, style, ...otherProps}: ListBoxSe
   });
 
   return (
-    <section 
+    <section
       {...filterDOMProps(otherProps)}
       {...groupProps}
       className={className || section.props?.className || 'react-aria-Section'}
