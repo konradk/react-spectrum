@@ -14,7 +14,7 @@ import {ButtonContext} from './Button';
 import {CheckboxContext} from './Checkbox';
 import {CollectionProps, ItemProps, useCachedChildren, useCollection} from './Collection';
 import {ContextValue, defaultSlot, Provider, SlotProps, StyleRenderProps, useContextProps, useRenderProps} from './utils';
-import {DragAndDropHooks, DropIndicatorProps} from './useDragAndDrop';
+import {DragAndDropHooks, DropIndicatorContext, DropIndicatorProps} from './useDragAndDrop';
 import {DraggableCollectionState, DroppableCollectionState, ListState, useListState} from 'react-stately';
 import {filterDOMProps, useObjectRef} from '@react-aria/utils';
 import {ListKeyboardDelegate} from '@react-aria/selection';
@@ -131,16 +131,20 @@ function GridList<T extends object>(props: GridListProps<T>, ref: ForwardedRef<H
   });
 
   return (
-    <ul 
+    <ul
       {...filterDOMProps(props)}
       {...renderProps}
       {...mergeProps(gridProps, droppableCollection?.collectionProps)}
       ref={ref}
       slot={props.slot}
       data-drop-target={isRootDropTarget || undefined}>
-      <InternalGridListContext.Provider value={{state, dragAndDropHooks, dragState, dropState}}>
+      <Provider
+        values={[
+          [InternalGridListContext, {state, dragAndDropHooks, dragState, dropState}],
+          [DropIndicatorContext, {render: GridListDropIndicator}]
+        ]}>
         {children}
-      </InternalGridListContext.Provider>
+      </Provider>
       {dragPreview}
       {portal}
     </ul>
@@ -189,7 +193,7 @@ function GridListItem({item}) {
       target: {type: 'item', key: item.key, dropPosition: 'on'}
     }, dropState, dropIndicatorRef);
   }
-  
+
   let props: ItemProps<unknown> = item.props;
   let isDragging = dragState && dragState.isDragging(item.key);
   let renderProps = useRenderProps({
